@@ -101,8 +101,9 @@ body.chat-theme {
 }
 
 .status-badge {
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -110,6 +111,7 @@ body.chat-theme {
     border-radius: 99px;
     font-size: 0.8rem;
     font-weight: 500;
+    line-height: 1;
 }
 
 .status-dot {
@@ -117,6 +119,8 @@ body.chat-theme {
     height: 8px;
     border-radius: 50%;
     background: var(--text-dim);
+    display: inline-block;
+    flex-shrink: 0;
 }
 
 .status-badge.active .status-dot {
@@ -504,21 +508,25 @@ body.chat-theme {
 }
 
 .live-indicator {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    justify-content: center;
+    gap: 0.45rem;
     font-size: 0.7rem;
     font-weight: 700;
     color: var(--accent-emerald);
     letter-spacing: 0.05em;
+    line-height: 1;
 }
 
 .live-dot {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: var(--accent-emerald);
     box-shadow: 0 0 8px var(--accent-emerald);
+    display: inline-block;
+    flex-shrink: 0;
 }
 
 .browser-viewport {
