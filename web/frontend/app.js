@@ -134,6 +134,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!data) return;
 
         switch (type) {
+            case 'live_frame':
+                if (data.screenshot) {
+                    updateLiveViewport(data.screenshot);
+                }
+                break;
+
             case 'step_update':
                 currentStepCount = data.step_number || currentStepCount;
                 

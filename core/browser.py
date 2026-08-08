@@ -168,6 +168,8 @@ class BrowserController:
         self.browser: Optional[Browser] = None
         self.context: Optional[BrowserContext] = None
         self.page: Optional[Page] = None
+        self.cdp_session = None
+        self.screencast_callback = None
         # Use settings if available, otherwise default to 1280
         self.screenshot_max_width = getattr(settings, 'SCREENSHOT_MAX_WIDTH', 1280)
 
@@ -188,8 +190,55 @@ class BrowserController:
             logger.error(f"Failed to launch browser: {e}")
             raise ExecutionError(f"Failed to launch browser: {e}")
 
+    async def start_screencast(self, callback):
+        """Starts real-time high-FPS CDP screencast video stream."""
+        if not self.context or not self.page:
+            return
+        try:
+            self.screencast_callback = callback
+            self.cdp_session = await self.context.new_cdp_session(self.page)
+            
+            async def on_frame(params):
+                session_id = params.get("sessionId")
+                data_base64 = params.get("data")
+                if self.cdp_session:
+                    try:
+                        await self.cdp_session.send("Page.screencastFrameAck", {"sessionId": session_id})
+                    except Exception:
+                        pass
+                if self.screencast_callback and data_base64:
+                    try:
+                        res = self.screencast_callback(data_base64)
+                        if inspect.isawaitable(res):
+                            await res
+                    except Exception as frame_err:
+                        logger.debug(f"Frame callback error: {frame_err}")
+
+            self.cdp_session.on("Page.screencastFrame", lambda params: asyncio.create_task(on_frame(params)))
+            await self.cdp_session.send("Page.startScreencast", {
+                "format": "jpeg",
+                "quality": 60,
+                "maxWidth": 1280,
+                "maxHeight": 1024,
+                "everyNthFrame": 1
+            })
+            logger.info("CDP High-FPS Live Screencast stream started")
+        except Exception as e:
+            logger.warning(f"Could not start CDP Screencast: {e}")
+
+    async def stop_screencast(self):
+        """Stops CDP screencast stream."""
+        if self.cdp_session:
+            try:
+                await self.cdp_session.send("Page.stopScreencast")
+            except Exception:
+                pass
+            self.cdp_session = None
+            self.screencast_callback = None
+
     async def close(self):
         """Closes the browser gracefully."""
+        await self.stop_screencast()
         if self.page:
             await self.page.close()
             self.page = None

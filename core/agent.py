@@ -109,9 +109,17 @@ class AegisAgent:
             max_steps = getattr(settings, "MAX_STEPS_DEFAULT", 50)
 
         await self.history.init_db()
-        session_id = await self.history.create_session(task)
-        
         await self.browser.launch(headless)
+        
+        async def on_screencast_frame(frame_base64):
+            await self._emit_step_update({
+                "session_id": session_id,
+                "type": "live_frame",
+                "status": "screencast",
+                "screenshot": frame_base64
+            })
+
+        await self.browser.start_screencast(on_screencast_frame)
         
         step_count = 0
         consecutive_same_action = 0

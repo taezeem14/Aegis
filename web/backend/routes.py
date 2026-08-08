@@ -32,9 +32,10 @@ async def create_task(request: TaskRequest, background_tasks: BackgroundTasks):
         """Send step updates to the connected client."""
         if session_id in active_connections:
             ws = active_connections[session_id]
+            msg_type = "live_frame" if step_data.get("type") == "live_frame" else "step_update"
             try:
                 await ws.send_json({
-                    "type": "step_update",
+                    "type": msg_type,
                     "data": step_data
                 })
             except Exception:
