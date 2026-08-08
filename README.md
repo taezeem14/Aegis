@@ -1,159 +1,213 @@
-# Aegis — Autonomous AI Browser Agent
+# 🛡️ Aegis — Autonomous AI Browser Agent
 
-Aegis is a Python-based autonomous browser agent that drives real Chromium via Playwright and uses AI reasoning to complete tasks described in plain English. It observes, reasons, and acts step-by-step — adapting to whatever page state it encounters.
+<p align="center">
+  <img src="https://img.shields.io/badge/Aegis-v2.0-4F46E5?style=for-the-badge&logo=shield" alt="Aegis v2.0">
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/Playwright-Automated-2EAD33?style=for-the-badge&logo=playwright&logoColor=white" alt="Playwright">
+  <img src="https://img.shields.io/badge/Spectrix_AI-Powered-06B6D4?style=for-the-badge" alt="Spectrix AI">
+  <img src="https://img.shields.io/badge/License-MIT-green.style=for-the-badge" alt="License">
+</p>
 
-## Features
+---
 
-- **Autonomous browsing** — Give it a task in English, watch it navigate, click, type, and extract data
-- **Real browser** — Drives Chromium via Playwright (not a scraper or HTML parser)
-- **Safety layer** — Destructive actions (purchases, deletions, form submissions) require explicit human confirmation
-- **Dual interface** — Both CLI and Web UI, sharing the same core engine
-- **Loop detection** — Automatically stops if stuck repeating actions or hitting errors
-- **Session history** — All tasks and steps stored in SQLite for review
+> **The next-gen, zero-hesitation autonomous browser agent.**  
+> Aegis blends **Playwright automation**, **Spectrix Cloudflare AI gateway**, **defensive DOM compression**, and a sleek **Chat + Live View UI** to execute complex web tasks completely autonomously. 🚀🔥
 
-## Quick Start
+---
 
-### Prerequisites
+## ⚡ Key Highlights
 
-- Python 3.11+
-- pip
+- **💬 Chat-First Workspace**: Interactive dual-panel Chat UI with live reasoning bubbles, status badges (`DECIDING`, `EXECUTED`, `COMPLETE`), and quick-suggestion pills.
+- **📺 Real-Time Live View**: Viewport stream that updates dynamically after every single action, keeping you in full sync with what the browser sees.
+- **👁️ Visible Desktop vs Headless Mode**: Toggle between background headless execution or launching the physical, visible Chromium window on your screen.
+- **⚡ Spectrix Cloudflare AI Worker Gateway**: High-throughput AI proxy with multi-key rotation, KV cooldown tracking, and fallback vision/text models (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`, `qwen-2-vl-72b`, `deepseek-chat`).
+- **🛡️ Deterministic Safety & Defensive Parsing**: Robust JSON parser utilizing `raw_decode` to bypass markdown wrapping, plus local safety classification for sensitive inputs and financial actions.
+- **🔄 Anti-Stuck Loop Detection**: Automatically detects repeated actions (3x identical) or frozen page URLs (5x non-change) to prevent infinite loops.
 
-### Installation
+---
+
+## 🏗️ Architecture & Workflow
+
+```mermaid
+graph TD
+    A[👤 User / Web UI] -->|Submits Task & Settings| B[⚡ FastAPI Web Backend]
+    B -->|Establishes WebSocket /ws/session| A
+    B -->|Spawns Autonomous Loop| C[🧠 Aegis Core Agent Engine]
+    
+    subgraph Core Execution Loop
+        C -->|1. Capture Screenshot & Condensed DOM| D[🌐 Playwright Browser Controller]
+        D -->|Base64 Viewport & DOM Tree| C
+        C -->|2. Send Context & Reasoning Request| E[🔑 Spectrix Cloudflare Worker API]
+        E -->|Rotates Keys & Queries LLM| F[🤖 OpenRouter AI Models]
+        F -->|Returns Structured JSON Action| E
+        E -->|Parsed Action Payload| C
+        C -->|3. Local Safety Check & Loop Detection| C
+        C -->|4. Execute Action click/type/scroll/navigate| D
+    end
+    
+    C -->|Stream Real-Time Steps & Screenshots| B
+    B -->|Live View Updates| A
+```
+
+---
+
+## 🔁 Agent Reasoning & Action Loop Sequence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User as 👤 User / UI
+    participant Agent as 🛡️ Aegis Agent
+    participant Browser as 🌐 Playwright Chromium
+    participant AI as ⚡ Spectrix AI Worker
+    
+    User->>Agent: "Search Playwright on DuckDuckGo"
+    Agent->>Browser: Launch Chromium (Headless / Desktop Mode)
+    
+    loop Until Task Completion or Max Steps
+        Agent->>Browser: Capture Screenshot & Extract Condensed DOM
+        Browser-->>Agent: Return Image Base64 & <12k DOM Token Tree
+        Agent->>AI: Post Context (Task, Step, URL, DOM Summary)
+        AI-->>Agent: JSON Action {"action": "navigate", "target": "https://duckduckgo.com"}
+        Agent->>User: Emit WebSocket Step Update ("AI Reasoning" + Live View Screenshot)
+        Agent->>Browser: Execute Action with JS Scroll/Click Fallbacks
+        Browser-->>Agent: Action Outcome & Updated Page State
+    end
+    
+    Agent->>User: Emit "Task Complete" Summary Modal
+```
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+- **Python 3.10+**
+- **Git**
+- **Chromium / Playwright Dependencies**
+
+### 2. Installation & Environment Setup
 
 ```bash
-# Clone and enter the project
-cd aegis
+# Clone the repository
+git clone https://github.com/taezeem14/Aegis.git
+cd Aegis
+
+# Create and activate virtual environment
+python -m venv venv
+# On Windows:
+venv\Scripts\activate
+# On Linux/macOS:
+source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Install Playwright browsers
+# Install Playwright browser binaries
 playwright install chromium
-
-# Set up configuration
-cp .env.example .env
-# Edit .env if needed (defaults work out of the box)
 ```
 
-### CLI Usage
+---
+
+## 🎮 Running Aegis
+
+### 🌐 Option A: Web Portal (Recommended)
+Start the FastAPI server and open the Chat + Live View Portal in your browser:
 
 ```bash
-# Run a task
-python -m cli.main run "search DuckDuckGo for 'Playwright Python' and tell me the first result"
+python -m uvicorn web.backend.app:app --host 127.0.0.1 --port 8000
+```
+Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)** in Chrome/Edge to start chatting with Aegis!
 
-# Run with visible browser (non-headless)
-python -m cli.main run "find the weather in New York" --no-headless
+---
 
-# Run with custom step limit
-python -m cli.main run "extract the top 3 headlines from news.ycombinator.com" --max-steps 15
+### 💻 Option B: Command Line Interface (CLI)
 
-# View past sessions
+Run single-shot tasks with live terminal streaming:
+
+```bash
+# Run a web automation task
+python -m cli.main run "search playwright on duckduckgo" --max-steps 15
+
+# Run in non-headless mode (opens physical browser on screen)
+python -m cli.main run "go to wikipedia.org and search Quantum Computing" --no-headless
+
+# View past session history logs
 python -m cli.main history
-
-# View details of a specific session
-python -m cli.main history <session_id>
 ```
 
-### Web UI Usage
+---
+
+## 🛠️ API & WebSocket Reference
+
+### `POST /api/task`
+Initiates an autonomous task session.
+
+**Request Body:**
+```json
+{
+  "task": "Search playwright on duckduckgo",
+  "headless": true,
+  "max_steps": 25
+}
+```
+**Response:**
+```json
+{
+  "session_id": "c3eb2cb9-c741-4437-a68d-5edf7a28c35e",
+  "status": "started"
+}
+```
+
+### `WebSocket /ws/{session_id}`
+Establishes a real-time event stream for step updates, live view screenshots, and task completion summaries.
+
+```json
+{
+  "type": "step_update",
+  "data": {
+    "session_id": "c3eb2cb9-c741-4437-a68d-5edf7a28c35e",
+    "step_number": 1,
+    "status": "executed",
+    "message": "Executed: navigate",
+    "screenshot": "iVBORw0KGgoAAAANSUhEUgAA...",
+    "action": {
+      "reasoning": "Navigating to DuckDuckGo search page",
+      "action": "navigate",
+      "target": "https://duckduckgo.com",
+      "value": null,
+      "is_destructive": false,
+      "task_complete": false
+    }
+  }
+}
+```
+
+---
+
+## 🧪 Testing
+
+Aegis includes a full suite of automated unit tests covering action validation, defensive parsing, safety classification, and agent loop execution:
 
 ```bash
-# Start the server
-uvicorn web.backend.app:app --reload
-
-# Open http://localhost:8000 in your browser
+# Run test suite
+pytest
 ```
 
-The Web UI provides:
-- Chat-style task input
-- Live step-by-step agent log
-- Screenshot viewer updating each step
-- Confirmation dialogs for destructive actions
-- Headless/headed toggle and max-steps control
+---
 
-## Example Tasks
+## ⚙️ Configuration (`config/settings.py`)
 
-1. **Search & Extract:**
-   ```
-   search DuckDuckGo for 'best Python frameworks 2024' and extract the first 3 result titles
-   ```
+| Setting | Default Value | Description |
+| :--- | :--- | :--- |
+| `SPECTRIX_WORKER_URL` | `https://spectrix-worker.tariqmtaezeem.workers.dev/` | Cloudflare Worker AI API Endpoint |
+| `AI_MODEL` | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | Primary LLM model slug |
+| `ENABLE_SAFETY_CONFIRMATION` | `False` | Toggle for destructive action confirmation popups |
+| `MAX_STEPS_DEFAULT` | `25` | Default safety step limit per task |
+| `PLAYWRIGHT_BROWSERS_PATH` | `D:\playwright-browsers` | Custom Playwright installation path |
 
-2. **Navigate & Read:**
-   ```
-   go to news.ycombinator.com and tell me the top 5 headlines
-   ```
+---
 
-3. **Multi-step Interaction:**
-   ```
-   go to wikipedia.org, search for 'artificial intelligence', and extract the first paragraph of the article
-   ```
+## 📄 License
 
-## Configuration
-
-All settings in `.env` (see `.env.example`):
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SPECTRIX_WORKER_URL` | `https://spectrix-worker.tariqmtaezeem.workers.dev/` | AI reasoning backend |
-| `AI_MODEL` | `moonshotai/kimi-k2.6:free` | Model for AI reasoning |
-| `MAX_STEPS_DEFAULT` | `25` | Default max steps per task |
-| `HEADLESS_DEFAULT` | `true` | Default browser visibility |
-| `DB_PATH` | `./data/aegis.db` | SQLite database path |
-| `SCREENSHOT_MAX_WIDTH` | `1280` | Screenshot downscale width |
-| `DOM_TOKEN_BUDGET` | `3000` | Max tokens for DOM summary |
-
-## Architecture
-
-```
-aegis/
-├── core/                    # Core engine (shared by CLI and Web UI)
-│   ├── agent.py             # Main agent loop orchestrator
-│   ├── browser.py           # Playwright wrapper + condensed DOM extraction
-│   ├── ai_client.py         # Spectrix Worker client + prompt construction
-│   ├── actions.py           # Action schema + defensive JSON parsing
-│   ├── history.py           # SQLite session/action storage
-│   └── safety.py            # Destructive action classifier
-├── cli/
-│   └── main.py              # CLI entrypoint (aegis run / aegis history)
-├── web/
-│   ├── backend/
-│   │   ├── app.py           # FastAPI + WebSocket server
-│   │   └── routes.py        # REST + WebSocket endpoints
-│   └── frontend/
-│       ├── index.html        # Single-page UI
-│       ├── style.css         # Dark theme
-│       └── app.js            # WebSocket client
-├── config/
-│   └── settings.py          # Centralized configuration
-├── tests/                   # Test suite
-├── data/                    # SQLite DB (created at runtime)
-├── requirements.txt
-└── .env.example
-```
-
-## Safety
-
-Aegis includes a mandatory safety layer that **cannot be bypassed**:
-
-- **Non-destructive** actions (navigate, click, scroll, type, read, screenshot) execute automatically
-- **Destructive** actions (purchase, delete, submit, transfer, payment) pause and require explicit confirmation
-- The safety classifier runs independently of the AI's own assessment — it never trusts the AI's `is_destructive` flag
-- Default confirmation answer is **No** (you must explicitly type `y` or click Confirm)
-
-## Running Tests
-
-```bash
-python -m pytest tests/ -v
-```
-
-## Deviations from Spec
-
-None. All architecture decisions follow the spec exactly:
-- Playwright (not Selenium)
-- FastAPI backend
-- All AI calls through Spectrix Worker (no direct API calls)
-- SQLite for storage
-- Safety layer cannot be globally disabled
-
-## Built By
-
-Muhammad Taezeem Tariq (Tony) — extending the agent-loop architecture from Ultron into browser-scoped autonomous operation.
+Distributed under the **MIT License**. Created with 🔥 by **Muhammad Taezeem Tariq Matta**.
