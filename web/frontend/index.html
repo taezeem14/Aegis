@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aegis — Autonomous AI Browser Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="chat-theme">
+    <!-- Main App Container -->
+    <div class="app-layout">
+        
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="logo-icon"><i class="fa-solid fa-shield-halved brand-shield"></i></div>
+                <div class="brand-info">
+                    <h1>Aegis <span class="badge-v2">AI 2.0</span></h1>
+                    <span class="subtitle">Autonomous AI Browser Agent</span>
+                </div>
+            </div>
+            
+            <div class="header-controls">
+                <div class="status-badge inactive" id="global-status">
+                    <span class="status-dot"><i class="fa-solid fa-circle"></i></span>
+                    <span class="status-text">Idle</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace (Chat Left, Live View Right) -->
+        <main class="workspace">
+            
+            <!-- Left Panel: Chat & Agent Reasoning -->
+            <section class="chat-section">
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Welcome Card -->
+                    <div class="chat-bubble agent-bubble welcome-bubble">
+                        <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                        <div class="bubble-content">
+                            <div class="agent-name">Aegis Agent</div>
+                            <p>Hello! I am Aegis, your autonomous browser assistant powered by Spectrix AI. What browser task would you like me to perform for you today?</p>
+                            <div class="suggestion-pills">
+                                <button class="pill-btn" onclick="fillTask('Search playwright on DuckDuckGo')"><i class="fa-solid fa-magnifying-glass"></i> Search Playwright</button>
+                                <button class="pill-btn" onclick="fillTask('Go to wikipedia.org and search Artificial Intelligence')"><i class="fa-solid fa-book"></i> Search Wikipedia</button>
+                                <button class="pill-btn" onclick="fillTask('Go to github.com and find python repositories')"><i class="fa-solid fa-code-branch"></i> Explore GitHub</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input Form at Bottom -->
+                <div class="chat-input-wrapper">
+                    <form id="chat-form" onsubmit="return false;">
+                        <div class="chat-input-box">
+                            <textarea id="task-input" rows="1" placeholder="Type a task for Aegis to execute..." autofocus></textarea>
+                            
+                            <div class="input-actions">
+                                <div class="options-bar">
+                                    <label class="toggle-pill" title="Run browser in headless background mode or open visible browser">
+                                        <input type="checkbox" id="headless-toggle" checked>
+                                        <span class="pill-slider"></span>
+                                        <span class="pill-text"><i class="fa-solid fa-ghost"></i> Headless</span>
+                                    </label>
+
+                                    <div class="steps-selector">
+                                        <label for="max-steps"><i class="fa-solid fa-list-ol"></i> Steps</label>
+                                        <input type="number" id="max-steps" value="25" min="1" max="100">
+                                    </div>
+                                </div>
+
+                                <button type="submit" id="start-btn" class="send-btn">
+                                    <span>Send Task</span>
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Right Panel: Interactive Live View Window -->
+            <section class="liveview-section">
+                <div class="browser-frame">
+                    <div class="browser-toolbar">
+                        <div class="traffic-lights">
+                            <span class="light red"></span>
+                            <span class="light yellow"></span>
+                            <span class="light green"></span>
+                        </div>
+
+                        <div class="address-bar">
+                            <span class="lock-icon"><i class="fa-solid fa-lock"></i></span>
+                            <input type="text" id="live-url" readonly value="about:blank">
+                        </div>
+
+                        <div class="live-indicator" id="live-indicator">
+                            <span class="live-dot"><i class="fa-solid fa-circle"></i></span>
+                            <span>LIVE VIEW</span>
+                        </div>
+                    </div>
+
+                    <div class="browser-viewport" id="browser-viewport">
+                        <img id="screenshot-img" src="" alt="Live Browser Stream" style="display: none;">
+                        <div id="screenshot-placeholder" class="viewport-placeholder">
+                            <div class="placeholder-icon"><i class="fa-solid fa-globe"></i></div>
+                            <h3>Live Browser Viewport</h3>
+                            <p>Submit a task to see Aegis interact with web pages in real time.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-overlay" class="overlay hidden">
+        <div class="confirmation-card">
+            <div class="confirmation-header">
+                <span class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                <h2>Action Required</h2>
+            </div>
+            <p id="confirmation-message">The agent is requesting confirmation to proceed.</p>
+            <div class="confirmation-screenshot-container">
+                <img id="confirmation-screenshot" src="" alt="Action Context">
+            </div>
+            <div class="confirmation-actions">
+                <button id="btn-cancel" class="btn secondary-btn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                <button id="btn-confirm" class="btn warning-btn"><i class="fa-solid fa-check"></i> Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Modal -->
+    <div id="summary-overlay" class="overlay hidden">
+        <div class="summary-card">
+            <h2><i class="fa-solid fa-square-check"></i> Task Execution Summary</h2>
+            <div class="summary-stats">
+                <div class="stat">
+                    <span class="stat-label">Outcome</span>
+                    <span class="stat-value" id="summary-outcome">Success</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Steps Completed</span>
+                    <span class="stat-value" id="summary-steps">0</span>
+                </div>
+            </div>
+            <div class="summary-result">
+                <h3>Final Result</h3>
+                <p id="summary-text">Task finished successfully.</p>
+            </div>
+            <button id="btn-close-summary" class="send-btn"><i class="fa-solid fa-xmark"></i> Close</button>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
