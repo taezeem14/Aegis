@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     """
     SPECTRIX_WORKER_URL: str = 'https://spectrix-worker.tariqmtaezeem.workers.dev/'
     AI_MODEL: str = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free'
+    FALLBACK_AI_MODEL: str = 'google/gemma-4-31b-it:free'
     ENABLE_SAFETY_CONFIRMATION: bool = False
     MAX_STEPS_DEFAULT: int = 25
     HEADLESS_DEFAULT: bool = True

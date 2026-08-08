@@ -42,16 +42,18 @@ class SpectrixClient:
     def __init__(self):
         self.base_url = settings.SPECTRIX_WORKER_URL.rstrip('/')
         self.model = settings.AI_MODEL
+        self.fallback_model = settings.FALLBACK_AI_MODEL
 
-    async def _make_request(self, session: aiohttp.ClientSession, messages: List[Dict[str, Any]]) -> str:
+    async def _make_request(self, session: aiohttp.ClientSession, messages: List[Dict[str, Any]], model_override: Optional[str] = None) -> str:
         """Helper to make the API request and extract the content."""
+        target_model = model_override or self.model
         payload = {
-            "model": self.model,
+            "model": target_model,
             "messages": messages
         }
         
         url = f"{self.base_url}/chat"
-        logger.debug(f"Sending request to {url} with model {self.model}")
+        logger.debug(f"Sending request to {url} with model {target_model}")
         
         headers = {
             "Content-Type": "application/json",
@@ -113,15 +115,7 @@ Decide the next action."""
     async def get_next_action(self, context: dict, screenshot_base64: Optional[str] = None) -> AgentAction:
         """
         Get the next action from the AI based on the current context.
-        
-        Args:
-            context: A dictionary containing task, current_url, step_number, max_steps, dom_summary, recent_actions
-            screenshot_base64: Optional base64 encoded screenshot image
-            
-        Returns:
-            An AgentAction object representing the next action to take
         """
-        
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
             self._format_user_message(context, screenshot_base64)
@@ -132,17 +126,14 @@ Decide the next action."""
                 try:
                     content = await self._make_request(session, messages)
                 except Exception as req_err:
-                    if screenshot_base64:
-                        logger.warning(f"Vision API request failed ({req_err}). Retrying with text-only payload.")
-                        messages[1] = self._format_user_message(context, screenshot_base64=None)
-                        content = await self._make_request(session, messages)
-                    else:
-                        raise req_err
+                    logger.warning(f"Primary model request ({self.model}) failed: {req_err}. Retrying with fallback model {self.fallback_model}.")
+                    messages[1] = self._format_user_message(context, screenshot_base64=None)
+                    content = await self._make_request(session, messages, model_override=self.fallback_model)
 
                 try:
                     return parse_and_validate(content)
                 except ActionParseError:
-                    logger.warning("Failed to parse first AI response. Retrying with a corrective message.")
+                    logger.warning("Failed to parse AI response. Retrying with a corrective message.")
                     messages.append({"role": "assistant", "content": content})
                     messages.append({
                         "role": "user",

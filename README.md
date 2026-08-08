@@ -20,7 +20,7 @@
 - **💬 Chat-First Workspace**: Interactive dual-panel Chat UI with live reasoning bubbles, status badges (`DECIDING`, `EXECUTED`, `COMPLETE`), and quick-suggestion pills.
 - **📺 Real-Time Live View**: Viewport stream that updates dynamically after every single action, keeping you in full sync with what the browser sees.
 - **👁️ Visible Desktop vs Headless Mode**: Toggle between background headless execution or launching the physical, visible Chromium window on your screen.
-- **⚡ Spectrix Cloudflare AI Worker Gateway**: High-throughput AI proxy with multi-key rotation, KV cooldown tracking, and fallback vision/text models (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`, `qwen-2-vl-72b`, `deepseek-chat`).
+- **⚡ Spectrix Cloudflare AI Worker Gateway**: High-throughput AI proxy with multi-key rotation, KV cooldown tracking, primary model `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`, and `google/gemma-4-31b-it:free` as the sole dedicated fallback.
 - **🛡️ Deterministic Safety & Defensive Parsing**: Robust JSON parser utilizing `raw_decode` to bypass markdown wrapping, plus local safety classification for sensitive inputs and financial actions.
 - **🔄 Anti-Stuck Loop Detection**: Automatically detects repeated actions (3x identical) or frozen page URLs (5x non-change) to prevent infinite loops.
 
@@ -202,6 +202,7 @@ pytest
 | :--- | :--- | :--- |
 | `SPECTRIX_WORKER_URL` | `https://spectrix-worker.tariqmtaezeem.workers.dev/` | Cloudflare Worker AI API Endpoint |
 | `AI_MODEL` | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | Primary LLM model slug |
+| `FALLBACK_AI_MODEL` | `google/gemma-4-31b-it:free` | Sole fallback model slug |
 | `ENABLE_SAFETY_CONFIRMATION` | `False` | Toggle for destructive action confirmation popups |
 | `MAX_STEPS_DEFAULT` | `25` | Default safety step limit per task |
 | `PLAYWRIGHT_BROWSERS_PATH` | `D:\playwright-browsers` | Custom Playwright installation path |
