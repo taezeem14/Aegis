@@ -7,6 +7,8 @@ if "PLAYWRIGHT_BROWSERS_PATH" not in os.environ:
 import base64
 import io
 import re
+import asyncio
+import inspect
 import logging
 from html.parser import HTMLParser
 from typing import Optional
